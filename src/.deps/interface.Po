@@ -881,7 +881,7 @@ interface.o: interface.c /usr/include/stdc-predef.h ../config.h \
  /usr/include/gimp-2.0/libgimp/gimpprocbrowserdialog.h \
  /usr/include/gimp-2.0/libgimp/gimpprocview.h \
  /usr/include/gimp-2.0/libgimp/gimpprogressbar.h \
- /usr/include/gimp-2.0/libgimp/gimpzoompreview.h main.h interface.h \
+ /usr/include/gimp-2.0/libgimp/gimpzoompreview.h interface.h main.h \
  plugin-intl.h /usr/include/libintl.h /usr/include/locale.h \
  /usr/include/x86_64-linux-gnu/bits/locale.h
 
@@ -2817,9 +2817,9 @@ interface.o: interface.c /usr/include/stdc-predef.h ../config.h \
 
 /usr/include/gimp-2.0/libgimp/gimpzoompreview.h:
 
-main.h:
-
 interface.h:
+
+main.h:
 
 plugin-intl.h:
 

@@ -28,7 +28,7 @@ To build and install it, just ...
 And don't forget to remove (or update if really necessary) comments
 for translators in po/README.translators.
 
-The default license for the ogniewski-scaler is an ultra-permissive
+The default license for the gimp-plugin-template is an ultra-permissive
 XFree-style license to encourage the use of the template for GPL /or/
 non-GPL plugins.  If you wish to use a different license for your plugin
 (e.g. GPL) then you may change the license block in the 'COPYING' file

@@ -28,6 +28,8 @@
 #ifndef __INTERFACE_H__
 #define __INTERFACE_H__
 
+#include "main.h"
+
 /*  Public functions  */
 
 gboolean dialog(gint32 image_ID,

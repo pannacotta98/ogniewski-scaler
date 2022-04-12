@@ -102,10 +102,12 @@ static void query(void) {
 
     gimp_plugin_help_register("http://developer.gimp.org/plug-in-template/help", help_uri);
 
-    gimp_install_procedure(PROCEDURE_NAME, "Blurb", "Help", "Michael Natterer <mitch@gimp.org>",
-                           "Michael Natterer <mitch@gimp.org>", "2000-2004",
-                           N_("Plug-In Template..."), "RGB*, GRAY*, INDEXED*", GIMP_PLUGIN,
-                           G_N_ELEMENTS(args), 0, args, NULL);
+    // TODO Fix all this stuff, Should we support gray?
+    gimp_install_procedure(
+        PROCEDURE_NAME, "Upscaling based on Artifact-Free Color Interpolation by Jens Ogniewski",
+        "Help", "Michael Natterer <mitch@gimp.org>", "Michael Natterer <mitch@gimp.org>",
+        "2000-2004", N_("Ogniewski scaler..."), "RGB*, GRAY*, INDEXED*", GIMP_PLUGIN,
+        G_N_ELEMENTS(args), 0, args, NULL);
 
     gimp_plugin_menu_register(PROCEDURE_NAME, "<Image>/Filters/Misc/");
 }
