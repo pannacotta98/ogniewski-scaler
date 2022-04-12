@@ -6,7 +6,7 @@
  * the rights to use, copy, modify, merge, publish, distribute, sublicense,
  * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included
  * in all copies or substantial portions of the Software.
  *
@@ -16,7 +16,7 @@
  * THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * 
+ *
  * Except as contained in this notice, the name of the Author of the
  * Software shall not be used in advertising or otherwise to promote the
  * sale, use or other dealings in this Software without prior written
@@ -26,20 +26,18 @@
 #ifndef __PLUGIN_INTL_H__
 #define __PLUGIN_INTL_H__
 
-
 #ifndef GETTEXT_PACKAGE
 #error "config.h must be included prior to plugin-intl.h"
 #endif
 
 #include <libintl.h>
 
-#define _(String) gettext (String)
+#define _(String) gettext(String)
 
 #ifdef gettext_noop
-#    define N_(String) gettext_noop (String)
+#define N_(String) gettext_noop(String)
 #else
-#    define N_(String) (String)
+#define N_(String) (String)
 #endif
-
 
 #endif /* __PLUGIN_INTL_H__ */
