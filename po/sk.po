@@ -1,14 +1,14 @@
-# gimp-plugin-template
+# ogniewski-scaler
 # Copyright (C) 2001 Free Software Foundation, Inc.
 # Zdenko Podobny <zdpo@mailbox.sk>, 2001.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: gimp-plugin-template\n"
+"Project-Id-Version: ogniewski-scaler\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2004-12-29 16:41+0100\n"
 "PO-Revision-Date: 2001-12-20 17:22GMT+0100\n"
-"Last-Translator: Zdenko Podobný <zdpo@mailbox.sk>\n"
+"Last-Translator: Zdenko Podobnï¿½ <zdpo@mailbox.sk>\n"
 "Language-Team: Slovak <sk-i18n@lists.linux.sk>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=ISO-8859-2\n"
@@ -17,41 +17,41 @@ msgstr ""
 
 #: src/interface.c:85
 msgid "GIMP Plug-In Template"
-msgstr "©ablóna zásuvných modulov GIMP"
+msgstr "ï¿½ablï¿½na zï¿½suvnï¿½ch modulov GIMP"
 
 #. gimp_scale_entry_new() examples
 #: src/interface.c:100
 msgid "ScaleEntry Examples"
-msgstr "Príklad na veµkos» polo¾ky"
+msgstr "Prï¿½klad na veï¿½kosï¿½ poloï¿½ky"
 
 #: src/interface.c:113
 msgid "Dummy 1:"
-msgstr "Figurína 1:"
+msgstr "Figurï¿½na 1:"
 
 #: src/interface.c:116
 msgid "Dummy scale entry 1"
-msgstr "Polo¾ka veµkosti figuríny 1"
+msgstr "Poloï¿½ka veï¿½kosti figurï¿½ny 1"
 
 #: src/interface.c:122
 msgid "Dummy 2:"
-msgstr "Figurína 2"
+msgstr "Figurï¿½na 2"
 
 #: src/interface.c:125
 msgid "Dummy scale entry 2"
-msgstr "Polo¾ka veµkosti figuríny 2"
+msgstr "Poloï¿½ka veï¿½kosti figurï¿½ny 2"
 
 #: src/interface.c:131
 msgid "Dummy 3:"
-msgstr "Figurína 3:"
+msgstr "Figurï¿½na 3:"
 
 #: src/interface.c:134
 msgid "Dummy scale entry 3"
-msgstr "Polo¾ka veµkosti figuríny 3"
+msgstr "Poloï¿½ka veï¿½kosti figurï¿½ny 3"
 
 #. gimp_random_seed_new() example
 #: src/interface.c:141
 msgid "A Random Seed Entry"
-msgstr "Polo¾ka náhodného semena"
+msgstr "Poloï¿½ka nï¿½hodnï¿½ho semena"
 
 #. gimp_coordinates_new() example
 #: src/interface.c:156
@@ -60,20 +60,20 @@ msgid ""
 "Initialized with the Drawable's Size"
 msgstr ""
 "Prvok GimpCoordinates\n"
-"Inicializované s veµkos»ou obrázka"
+"Inicializovanï¿½ s veï¿½kosï¿½ou obrï¿½zka"
 
 #: src/interface.c:174
 msgid "Width:"
-msgstr "©írka:"
+msgstr "ï¿½ï¿½rka:"
 
 #: src/interface.c:178
 msgid "Height:"
-msgstr "Vý¹ka:"
+msgstr "Vï¿½ï¿½ka:"
 
 #. Image and drawable menus
 #: src/interface.c:186
 msgid "Image and Drawable Menu Examples"
-msgstr "Príklady obrázkov a kreslených ponúk"
+msgstr "Prï¿½klady obrï¿½zkov a kreslenï¿½ch ponï¿½k"
 
 #: src/interface.c:205
 msgid "Layers:"
@@ -81,28 +81,28 @@ msgstr "Vrstvy:"
 
 #: src/interface.c:213
 msgid "RGB Images:"
-msgstr "RGB Obrázky:"
+msgstr "RGB Obrï¿½zky:"
 
 #: src/main.c:137
 #, fuzzy
 msgid "Plug-In Template..."
-msgstr "©ablóna zásuvných modulov GIMP"
+msgstr "ï¿½ablï¿½na zï¿½suvnï¿½ch modulov GIMP"
 
 #: src/render.c:49
 msgid "This plug-in is just a dummy. It has now finished doing nothing."
 msgstr ""
 
 #~ msgid "Pixmap Examples"
-#~ msgstr "Obrázky príkladov"
+#~ msgstr "Obrï¿½zky prï¿½kladov"
 
 #~ msgid "Pixmap Buttons:"
-#~ msgstr "Obrázky tlaèítok:"
+#~ msgstr "Obrï¿½zky tlaï¿½ï¿½tok:"
 
 #~ msgid "With Text"
 #~ msgstr "S textom"
 
 #~ msgid "Plain Pixmap:"
-#~ msgstr "Èistý obrázok:"
+#~ msgstr "ï¿½istï¿½ obrï¿½zok:"
 
 #, fuzzy
 #~ msgid "<Image>/Filters/Misc/Plug-In Template..."
@@ -112,4 +112,4 @@ msgstr ""
 #~ msgstr "Ok"
 
 #~ msgid "Cancel"
-#~ msgstr "Zru¹i»"
+#~ msgstr "Zruï¿½iï¿½"

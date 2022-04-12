@@ -1,5 +1,5 @@
 *.o
-src/gimp-plugin-template
+src/ogniewski-scaler
 src/Makefile
 config.h
 config.log

@@ -1,10 +1,10 @@
 ## Process this file with automake to produce Makefile.in
 
-bin_PROGRAMS = gimp-plugin-template
+bin_PROGRAMS = ogniewski-scaler
 
 bindir = $(GIMP_LIBDIR)/plug-ins
 
-gimp_plugin_template_SOURCES = \
+ogniewski_scaler_SOURCES = \
 	plugin-intl.h	\
 	interface.c	\
 	interface.h	\

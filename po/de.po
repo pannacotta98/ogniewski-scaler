@@ -4,7 +4,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: gimp-plugin-template 2.2\n"
+"Project-Id-Version: ogniewski-scaler 2.2\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2004-12-29 16:41+0100\n"
 "PO-Revision-Date: 2003-11-29 13:36+0100\n"

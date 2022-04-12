@@ -4,7 +4,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: gimp-plugin-template 1.2.0\n"
+"Project-Id-Version: ogniewski-scaler 1.2.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2004-12-29 16:41+0100\n"
 "PO-Revision-Date: 2001-10-20 12:33+0200\n"
@@ -16,7 +16,7 @@ msgstr ""
 
 #: src/interface.c:85
 msgid "GIMP Plug-In Template"
-msgstr "Modèle de greffon pour GIMP"
+msgstr "Modï¿½le de greffon pour GIMP"
 
 #. gimp_scale_entry_new() examples
 #: src/interface.c:100
@@ -50,7 +50,7 @@ msgstr "Exemple de curseur 3"
 #. gimp_random_seed_new() example
 #: src/interface.c:141
 msgid "A Random Seed Entry"
-msgstr "Une entrée Graine du générateur de nombres aléatoires"
+msgstr "Une entrï¿½e Graine du gï¿½nï¿½rateur de nombres alï¿½atoires"
 
 #. gimp_coordinates_new() example
 #: src/interface.c:156
@@ -59,7 +59,7 @@ msgid ""
 "Initialized with the Drawable's Size"
 msgstr ""
 "Un widget GimpCoordinates\n"
-"initialisé avec la taille de l'image"
+"initialisï¿½ avec la taille de l'image"
 
 #: src/interface.c:174
 msgid "Width:"
@@ -85,7 +85,7 @@ msgstr "Images RVB :"
 #: src/main.c:137
 #, fuzzy
 msgid "Plug-In Template..."
-msgstr "Modèle de greffon pour GIMP"
+msgstr "Modï¿½le de greffon pour GIMP"
 
 #: src/render.c:49
 msgid "This plug-in is just a dummy. It has now finished doing nothing."
@@ -105,7 +105,7 @@ msgstr ""
 
 #, fuzzy
 #~ msgid "<Image>/Filters/Misc/Plug-In Template..."
-#~ msgstr "<Image>/Filtres/Divers/Modèle de greffon..."
+#~ msgstr "<Image>/Filtres/Divers/Modï¿½le de greffon..."
 
 #~ msgid "OK"
 #~ msgstr "Valider"

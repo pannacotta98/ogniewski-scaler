@@ -154,9 +154,9 @@ sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 
-bin_PROGRAMS = gimp-plugin-template
+bin_PROGRAMS = ogniewski-scaler
 
-gimp_plugin_template_SOURCES = \
+ogniewski_scaler_SOURCES = \
 	plugin-intl.h	\
 	interface.c	\
 	interface.h	\
@@ -183,15 +183,15 @@ ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
-bin_PROGRAMS = gimp-plugin-template$(EXEEXT)
+bin_PROGRAMS = ogniewski-scaler$(EXEEXT)
 PROGRAMS = $(bin_PROGRAMS)
 
-am_gimp_plugin_template_OBJECTS = interface.$(OBJEXT) main.$(OBJEXT) \
+am_ogniewski_scaler_OBJECTS = interface.$(OBJEXT) main.$(OBJEXT) \
 	render.$(OBJEXT)
-gimp_plugin_template_OBJECTS = $(am_gimp_plugin_template_OBJECTS)
-gimp_plugin_template_LDADD = $(LDADD)
-gimp_plugin_template_DEPENDENCIES =
-gimp_plugin_template_LDFLAGS =
+ogniewski_scaler_OBJECTS = $(am_ogniewski_scaler_OBJECTS)
+ogniewski_scaler_LDADD = $(LDADD)
+ogniewski_scaler_DEPENDENCIES =
+ogniewski_scaler_LDFLAGS =
 
 DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -202,9 +202,9 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-DIST_SOURCES = $(gimp_plugin_template_SOURCES)
+DIST_SOURCES = $(ogniewski_scaler_SOURCES)
 DIST_COMMON = $(srcdir)/Makefile.in Makefile.am
-SOURCES = $(gimp_plugin_template_SOURCES)
+SOURCES = $(ogniewski_scaler_SOURCES)
 
 all: all-am
 
@@ -239,9 +239,9 @@ uninstall-binPROGRAMS:
 
 clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
-gimp-plugin-template$(EXEEXT): $(gimp_plugin_template_OBJECTS) $(gimp_plugin_template_DEPENDENCIES) 
-	@rm -f gimp-plugin-template$(EXEEXT)
-	$(LINK) $(gimp_plugin_template_LDFLAGS) $(gimp_plugin_template_OBJECTS) $(gimp_plugin_template_LDADD) $(LIBS)
+ogniewski-scaler$(EXEEXT): $(ogniewski_scaler_OBJECTS) $(ogniewski_scaler_DEPENDENCIES) 
+	@rm -f ogniewski-scaler$(EXEEXT)
+	$(LINK) $(ogniewski_scaler_LDFLAGS) $(ogniewski_scaler_OBJECTS) $(ogniewski_scaler_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) core *.core

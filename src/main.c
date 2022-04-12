@@ -40,7 +40,7 @@
 
 /*  Constants  */
 
-#define PROCEDURE_NAME "gimp_plugin_template"
+#define PROCEDURE_NAME "ogniewski_scaler"
 
 #define DATA_KEY_VALS "plug_in_template"
 #define DATA_KEY_UI_VALS "plug_in_template_ui"

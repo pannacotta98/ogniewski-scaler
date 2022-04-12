@@ -1,10 +1,10 @@
-# Traditional chinese translation for gimp-plugin-template.
+# Traditional chinese translation for ogniewski-scaler.
 # Copyright (C) 2001 Free Software Foundation, Inc.
 # Abel Cheung <maddog@linux.org.hk>, 2001.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: gimp-plugin-template 1.2.0\n"
+"Project-Id-Version: ogniewski-scaler 1.2.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2004-12-29 16:41+0100\n"
 "PO-Revision-Date: 2001-11-05 21:53+0800\n"
