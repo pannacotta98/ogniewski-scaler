@@ -1,0 +1,14 @@
+*.o
+src/gimp-plugin-template
+src/Makefile
+config.h
+config.log
+config.status
+stamp-h1
+intltool-update
+intltool-merge
+intltool-extract
+Makefile
+po/Makefile.in
+po/Makefile
+po/POTFILES
