@@ -28,7 +28,6 @@
 #include "config.h"
 
 #include <gtk/gtk.h>
-
 #include <libgimp/gimp.h>
 
 #include "main.h"
@@ -37,6 +36,9 @@
 #include "plugin-intl.h"
 
 /*  Public functions  */
+
+// TODO How do we handle edge cases, the example doesnt seem to to anything about it!?
+// Actually maybe it does
 
 void render(gint32 image_ID,
             GimpDrawable* drawable,
@@ -49,6 +51,7 @@ void render(gint32 image_ID,
     gint width = x2 - x1;
     gint height = y2 - y1;
 
+    // Makes everything a lot faster, see https://developer.gimp.org/writing-a-plug-in/3/index.html
     gimp_tile_cache_ntiles(2 * (drawable->width / gimp_tile_width() + 1));
 
     GimpPixelRgn rgn_in, rgn_out;
@@ -68,18 +71,81 @@ void render(gint32 image_ID,
         gimp_pixel_rgn_get_row(&rgn_in, row3, x1, MIN(y2 - 1, i + 1), width);
 
         for (gint j = x1; j < x2; j++) {
-            /* For each layer, compute the average of the nine
-             * pixels */
+            // TODO Faster to not declare every time?
+            double vert_alpha = 0.0;
+            double hori_alpha = 0.0;
+            gboolean vert_changed = FALSE;
+            gboolean hori_changed = FALSE;
+
+            /* For each layer, compute the average of the nine pixels */
             for (gint k = 0; k < channels; k++) {
-                int sum = 0;
-                sum = row1[channels * MAX((j - 1 - x1), 0) + k] + row1[channels * (j - x1) + k] +
-                      row1[channels * MIN((j + 1 - x1), width - 1) + k] +
-                      row2[channels * MAX((j - 1 - x1), 0) + k] + row2[channels * (j - x1) + k] +
-                      row2[channels * MIN((j + 1 - x1), width - 1) + k] +
-                      row3[channels * MAX((j - 1 - x1), 0) + k] + row3[channels * (j - x1) + k] +
-                      row3[channels * MIN((j + 1 - x1), width - 1) + k];
-                outrow[channels * (j - x1) + k] = sum / 9;
+                // int sum = 0;
+                // sum = row1[channels * MAX((j - 1 - x1), 0) + k] + row1[channels * (j - x1) + k] +
+                //       row1[channels * MIN((j + 1 - x1), width - 1) + k] +
+                //       row2[channels * MAX((j - 1 - x1), 0) + k] + row2[channels * (j - x1) + k] +
+                //       row2[channels * MIN((j + 1 - x1), width - 1) + k] +
+                //       row3[channels * MAX((j - 1 - x1), 0) + k] + row3[channels * (j - x1) + k] +
+                //       row3[channels * MIN((j + 1 - x1), width - 1) + k];
+                // outrow[channels * (j - x1) + k] = sum / 9;
+
+                // Trying out some vertical alpha calculations
+                double d0 =
+                    (double)row2[channels * (j - x1) + k] - (double)row1[channels * (j - x1) + k];
+                double d1 =
+                    (double)row3[channels * (j - x1) + k] - (double)row2[channels * (j - x1) + k];
+
+                if (d0 != 0.0 || d1 != 0.0) {
+                    double maybe_alpha = 0.0;
+
+                    if ((d0 > 0.0 && d1 > 0.0) || (d0 < 0.0 && d1 < 0.0)) {
+                        double td = 0.5 * (d0 + d1);
+                        maybe_alpha = 0.5;
+
+                        if (fabs(d0) < fabs(td))
+                            maybe_alpha = fabs(d0) / fabs(td) * 0.5;
+                        if (fabs(d1) < fabs(td))
+                            maybe_alpha = fabs(d1) / fabs(td) * 0.5;
+                    }
+
+                    if (!vert_changed || (vert_alpha > maybe_alpha)) {
+                        vert_alpha = maybe_alpha;
+                        vert_changed = TRUE;
+                    }
+                }
+
+                // Trying out some horizontal alpha calculations
+                d0 = (double)row2[channels * (j - x1) + k] -
+                     (double)row2[channels * MAX((j - 1 - x1), 0) + k];
+                d1 = (double)row2[channels * MIN((j + 1 - x1), width - 1) + k] -
+                     (double)row2[channels * (j - x1) + k];
+
+                if (d0 != 0.0 || d1 != 0.0) {
+                    double maybe_alpha = 0.0;
+
+                    if ((d0 > 0.0 && d1 > 0.0) || (d0 < 0.0 && d1 < 0.0)) {
+                        double td = 0.5 * (d0 + d1);
+                        maybe_alpha = 0.5;
+
+                        if (fabs(d0) < fabs(td))
+                            maybe_alpha = fabs(d0) / fabs(td) * 0.5;
+                        if (fabs(d1) < fabs(td))
+                            maybe_alpha = fabs(d1) / fabs(td) * 0.5;
+                    }
+
+                    if (!hori_changed || (hori_alpha > maybe_alpha)) {
+                        hori_alpha = maybe_alpha;
+                        hori_changed = TRUE;
+                    }
+                }
+
+                // outrow[channels * (j - x1) + k] = (guchar)round((d1 + d0) / 2.0);
+                // outrow[channels * (j - x1) + k] = 128;
             }
+            guchar debug1 = CLAMP(round(vert_alpha * 255.0 * 2.0), 0, 255);
+            guchar debug2 = CLAMP(round(hori_alpha * 255.0 * 2.0), 0, 255);
+            outrow[channels * (j - x1) + 0] = debug2;
+            outrow[channels * (j - x1) + 1] = debug1;
+            outrow[channels * (j - x1) + 2] = debug2;
         }
 
         gimp_pixel_rgn_set_row(&rgn_out, outrow, x1, i, width);
@@ -98,4 +164,8 @@ void render(gint32 image_ID,
     gimp_drawable_update(drawable->drawable_id, x1, y1, width, height);
 
     g_message(_("Lakrits2"));
+}
+
+void calc_alpha() {
+    // TODO
 }

@@ -101,7 +101,7 @@ static void query(void) {
     gimp_install_procedure(
         PROCEDURE_NAME, "Upscaling based on Artifact-Free Color Interpolation by Jens Ogniewski",
         "Help", "Michael Natterer <mitch@gimp.org>", "Michael Natterer <mitch@gimp.org>",
-        "2000-2004", N_("Ogniewski scaler..."), "RGB*", GIMP_PLUGIN, G_N_ELEMENTS(args), 0, args,
+        "2000-2004", N_("Ogniewski scaler..."), "RGB", GIMP_PLUGIN, G_N_ELEMENTS(args), 0, args,
         NULL);
 
     gimp_plugin_menu_register(PROCEDURE_NAME, "<Image>/Filters/Misc/");
@@ -141,7 +141,7 @@ static void run(const gchar* name,
     if (strcmp(name, PROCEDURE_NAME) == 0) {
         switch (run_mode) {
             case GIMP_RUN_NONINTERACTIVE:
-                if (n_params != 8) {
+                if (n_params != 8) {  // TODO Fix this value
                     status = GIMP_PDB_CALLING_ERROR;
                 } else {
                     vals.dummy1 = param[3].data.d_int32;
