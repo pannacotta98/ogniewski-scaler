@@ -58,12 +58,9 @@ static void run(const gchar* name,
 
 /*  Local variables  */
 
-const PlugInVals default_vals = {0, 1, 2, 0, FALSE};
-
+const PlugInVals default_vals = {0, 1, 2};
 const PlugInImageVals default_image_vals = {0};
-
 const PlugInDrawableVals default_drawable_vals = {0};
-
 const PlugInUIVals default_ui_vals = {TRUE};
 
 static PlugInVals vals;
@@ -84,15 +81,13 @@ static void query(void) {
     gchar* help_path;
     gchar* help_uri;
 
-    static GimpParamDef args[] = {
-        {GIMP_PDB_INT32, "run_mode", "Interactive, non-interactive"},
-        {GIMP_PDB_IMAGE, "image", "Input image"},
-        {GIMP_PDB_DRAWABLE, "drawable", "Input drawable"},
-        {GIMP_PDB_INT32, "dummy", "dummy1"},
-        {GIMP_PDB_INT32, "dummy", "dummy2"},
-        {GIMP_PDB_INT32, "dummy", "dummy3"},
-        {GIMP_PDB_INT32, "seed", "Seed value (used only if randomize is FALSE)"},
-        {GIMP_PDB_INT32, "randomize", "Use a random seed (TRUE, FALSE)"}};
+    static GimpParamDef args[] = {// { parameter type, name, string describing the parameter }
+                                  {GIMP_PDB_INT32, "run_mode", "Interactive, non-interactive"},
+                                  {GIMP_PDB_IMAGE, "image", "Input image"},
+                                  {GIMP_PDB_DRAWABLE, "drawable", "Input drawable"},
+                                  {GIMP_PDB_INT32, "dummy", "dummy1"},
+                                  {GIMP_PDB_INT32, "dummy", "dummy2"},
+                                  {GIMP_PDB_INT32, "dummy", "dummy3"}};
 
     gimp_plugin_domain_register(PLUGIN_NAME, LOCALEDIR);
 
@@ -102,12 +97,12 @@ static void query(void) {
 
     gimp_plugin_help_register("http://developer.gimp.org/plug-in-template/help", help_uri);
 
-    // TODO Fix all this stuff, Should we support gray?
+    // TODO Fix all this stuff
     gimp_install_procedure(
         PROCEDURE_NAME, "Upscaling based on Artifact-Free Color Interpolation by Jens Ogniewski",
         "Help", "Michael Natterer <mitch@gimp.org>", "Michael Natterer <mitch@gimp.org>",
-        "2000-2004", N_("Ogniewski scaler..."), "RGB*, GRAY*, INDEXED*", GIMP_PLUGIN,
-        G_N_ELEMENTS(args), 0, args, NULL);
+        "2000-2004", N_("Ogniewski scaler..."), "RGB*", GIMP_PLUGIN, G_N_ELEMENTS(args), 0, args,
+        NULL);
 
     gimp_plugin_menu_register(PROCEDURE_NAME, "<Image>/Filters/Misc/");
 }
@@ -152,11 +147,6 @@ static void run(const gchar* name,
                     vals.dummy1 = param[3].data.d_int32;
                     vals.dummy2 = param[4].data.d_int32;
                     vals.dummy3 = param[5].data.d_int32;
-                    vals.seed = param[6].data.d_int32;
-                    vals.random_seed = param[7].data.d_int32;
-
-                    if (vals.random_seed)
-                        vals.seed = g_random_int();
                 }
                 break;
 
@@ -173,9 +163,6 @@ static void run(const gchar* name,
             case GIMP_RUN_WITH_LAST_VALS:
                 /*  Possibly retrieve data  */
                 gimp_get_data(DATA_KEY_VALS, &vals);
-
-                if (vals.random_seed)
-                    vals.seed = g_random_int();
                 break;
 
             default:

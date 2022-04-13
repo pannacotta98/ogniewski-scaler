@@ -32,8 +32,6 @@ typedef struct {
     gint dummy1;
     gint dummy2;
     gint dummy3;
-    guint seed;
-    gboolean random_seed;
 } PlugInVals;
 
 typedef struct {

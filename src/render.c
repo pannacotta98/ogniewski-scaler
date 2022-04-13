@@ -43,7 +43,59 @@ void render(gint32 image_ID,
             PlugInVals* vals,
             PlugInImageVals* image_vals,
             PlugInDrawableVals* drawable_vals) {
-    g_message(
-        _("This plug-in is just a dummy. "
-          "It has now finished doing nothing."));
+    gint x1, y1, x2, y2;
+    gimp_drawable_mask_bounds(drawable->drawable_id, &x1, &y1, &x2, &y2);
+    gint channels = gimp_drawable_bpp(drawable->drawable_id);
+    gint width = x2 - x1;
+    gint height = y2 - y1;
+
+    gimp_tile_cache_ntiles(2 * (drawable->width / gimp_tile_width() + 1));
+
+    GimpPixelRgn rgn_in, rgn_out;
+    gimp_pixel_rgn_init(&rgn_in, drawable, x1, y1, width, height, FALSE, FALSE);
+    gimp_pixel_rgn_init(&rgn_out, drawable, x1, y1, width, height, TRUE, TRUE);
+
+    /* Initialise enough memory for row1, row2, row3, outrow */
+    guchar* row1 = g_new(guchar, channels * width);
+    guchar* row2 = g_new(guchar, channels * width);
+    guchar* row3 = g_new(guchar, channels * width);
+    guchar* outrow = g_new(guchar, channels * width);
+
+    for (gint i = y1; i < y2; i++) {
+        /* Get row i-1, i, i+1 */
+        gimp_pixel_rgn_get_row(&rgn_in, row1, x1, MAX(y1, i - 1), width);
+        gimp_pixel_rgn_get_row(&rgn_in, row2, x1, i, width);
+        gimp_pixel_rgn_get_row(&rgn_in, row3, x1, MIN(y2 - 1, i + 1), width);
+
+        for (gint j = x1; j < x2; j++) {
+            /* For each layer, compute the average of the nine
+             * pixels */
+            for (gint k = 0; k < channels; k++) {
+                int sum = 0;
+                sum = row1[channels * MAX((j - 1 - x1), 0) + k] + row1[channels * (j - x1) + k] +
+                      row1[channels * MIN((j + 1 - x1), width - 1) + k] +
+                      row2[channels * MAX((j - 1 - x1), 0) + k] + row2[channels * (j - x1) + k] +
+                      row2[channels * MIN((j + 1 - x1), width - 1) + k] +
+                      row3[channels * MAX((j - 1 - x1), 0) + k] + row3[channels * (j - x1) + k] +
+                      row3[channels * MIN((j + 1 - x1), width - 1) + k];
+                outrow[channels * (j - x1) + k] = sum / 9;
+            }
+        }
+
+        gimp_pixel_rgn_set_row(&rgn_out, outrow, x1, i, width);
+
+        if (i % 10 == 0)
+            gimp_progress_update((gdouble)(i - y1) / (gdouble)(height));
+    }
+
+    g_free(row1);
+    g_free(row2);
+    g_free(row3);
+    g_free(outrow);
+
+    gimp_drawable_flush(drawable);
+    gimp_drawable_merge_shadow(drawable->drawable_id, TRUE);
+    gimp_drawable_update(drawable->drawable_id, x1, y1, width, height);
+
+    g_message(_("Lakrits2"));
 }
