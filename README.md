@@ -1,4 +1,18 @@
-GIMP Plug-In Template
+# Ogniewski Scaler
+
+TODO Description
+
+## Dependencies
+On Ubuntu 20.04.4 LTS on ARM64 in a VM on an M1 MacBook Air, the following installs were needed
+```bash
+$ sudo apt install gimp
+$ sudo apt install build-essential
+$ sudo apt install libgimp2.0-dev
+```
+Installing GIMP via snap can have some problems with accessing the plugins folder.
+
+
+Based on: GIMP Plug-In Template
 =====================
 
 Copyright (C) 2000-2003  Michael Natterer <mitch@gimp.org>
