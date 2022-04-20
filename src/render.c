@@ -35,7 +35,7 @@
 
 #include "plugin-intl.h"
 
-static inline gint to_1d_index(gint x, gint y, gint channel, gint width);
+static inline gint to_1d_index(gint x, gint y, gint channel, gint width, gint num_channels);
 static inline gdouble out_to_in_coord(gint out, gdouble factor);
 
 // TODO How do we handle edge cases?
@@ -153,8 +153,8 @@ void render(gint32 image_ID,
     guchar* in_img_array = g_new(guchar, in_width * in_height * 3);  // RGB is 3 bpp
     gimp_pixel_rgn_get_rect(&rgn_in, in_img_array, x1, y1, in_width, in_height);
 
-    gint out_width = 4 * in_width;
-    gint out_height = 2 * in_height;
+    gint out_width = 8 * in_width;
+    gint out_height = 8 * in_height;
 
     gimp_image_undo_group_start(gimp_item_get_image(drawable->drawable_id));
 
@@ -175,25 +175,36 @@ void render(gint32 image_ID,
 
         for (int ix = 0; ix < out_width; ++ix)
             for (int iy = 0; iy < out_height; ++iy) {
-                // out_img_array[to_1d_index(ix, iy, 0, out_width)] =
-                //     (guchar)CLAMP(255 * (double)ix / (double)out_width, 0, 255);
-                // out_img_array[to_1d_index(ix, iy, 1, out_width)] =
-                //     (guchar)CLAMP(255 * (double)iy / (double)out_height, 0, 255);
-                // out_img_array[to_1d_index(ix, iy, 2, out_width)] =
-                //     (guchar)CLAMP(255 * (double)ix / (double)out_width, 0, 255);
-
-                // out_img_array[to_1d_index(ix, iy, ic, out_height)] = 128;
-                // out_img_array[(ix * out_height * 3) + iy * 3 + ic] = 128;
-
-                // out_img_array[to_1d_index(ix, iy, 1, out_width)] =
-                //     (guchar)(255.0 * out_to_in_coord(ix, 1.5) / in_width);
+                gdouble out_x = out_to_in_coord(ix, 8);
+                gdouble out_y = out_to_in_coord(iy, 8);
+                gdouble u = out_x - floor(out_x);
+                gdouble v = out_y - floor(out_y);
 
                 for (int ic = 0; ic < 3; ++ic) {
-                    out_img_array[to_1d_index(ix, iy, ic, out_width)] =
-                        in_img_array[to_1d_index(CLAMP(out_to_in_coord(ix, 4), 0, in_width),   // x
-                                                 CLAMP(out_to_in_coord(iy, 2), 0, in_height),  // y
-                                                 ic,  // channel
-                                                 in_width)];
+                    // TODO Edge cases?
+                    gdouble w00 = in_img_array[to_1d_index(CLAMP(floor(out_x), 0, in_width - 1),
+                                                           CLAMP(floor(out_y), 0, in_height - 1),
+                                                           ic, in_width, 3)];
+                    gdouble w10 = in_img_array[to_1d_index(CLAMP(ceil(out_x), 0, in_width - 1),
+                                                           CLAMP(floor(out_y), 0, in_height - 1),
+                                                           ic, in_width, 3)];
+                    gdouble w01 = in_img_array[to_1d_index(CLAMP(floor(out_x), 0, in_width - 1),
+                                                           CLAMP(ceil(out_y), 0, in_height - 1), ic,
+                                                           in_width, 3)];
+                    gdouble w11 = in_img_array[to_1d_index(CLAMP(ceil(out_x), 0, in_width - 1),
+                                                           CLAMP(ceil(out_y), 0, in_height - 1), ic,
+                                                           in_width, 3)];
+
+                    out_img_array[to_1d_index(ix, iy, ic, out_width, 3)] = (1 - u) * (1 - v) * w00 +
+                                                                           u * (1 - v) * w10 +  //
+                                                                           (1 - u) * v * w01 +  //
+                                                                           u * v * w11;
+
+                    // out_img_array[to_1d_index(ix, iy, ic, out_width)] =
+                    //     in_img_array[to_1d_index(CLAMP(out_to_in_coord(ix, 4), 0, in_width),   //
+                    //     x
+                    //                              CLAMP(out_to_in_coord(iy, 2), 0, in_height),  //
+                    //                              y ic,  // channel in_width)];
                 }
             }
 
@@ -217,11 +228,9 @@ static void calc_alpha() {
 }
 
 static inline gdouble out_to_in_coord(gint out, gdouble factor) {
-    // TODO really not sure about this
-    // seems offset, also dont forget to handle edges somewhere!
-    return ((double)(out - 1.0) / factor) + 0.5 * (1.0 - 1.0 / factor);
+    return (out - 0.5) * (1 / factor) - 0.5;
 }
 
-static inline gint to_1d_index(gint x, gint y, gint channel, gint width) {
-    return (y * width * 3) + x * 3 + channel;
+static inline gint to_1d_index(gint x, gint y, gint channel, gint width, gint num_channels) {
+    return (y * width * num_channels) + x * num_channels + channel;
 }
