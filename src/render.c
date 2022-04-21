@@ -38,10 +38,7 @@
 
 static inline gint to_1d_index(gint x, gint y, gint channel, gint width, gint num_channels);
 static inline gdouble out_to_in_coord(gint out, gdouble factor);
-static void calc_alphas(guchar* in_img_array,  // height * width * num_channels of original img
-                        gdouble* alphas,       // out, height * width * 2 (vert & hor)
-                        gint height,
-                        gint width);
+static void calc_alphas(guchar* in_img_array, gdouble* alphas, gint height, gint width);
 static gdouble alpha_from_gradients(gdouble d0[], gdouble d1[]);
 
 // TODO How do we handle edge cases?
@@ -95,41 +92,101 @@ void render(gint32 image_ID,
         // TODO Check if y first then x is faster
         for (int ix = 0; ix < out_width; ++ix)
             for (int iy = 0; iy < out_height; ++iy) {
-                gdouble out_x = out_to_in_coord(ix, x_fact);
-                gdouble out_y = out_to_in_coord(iy, y_fact);
-                gdouble u = out_x - floor(out_x);
-                gdouble v = out_y - floor(out_y);
+                gdouble in_x = out_to_in_coord(ix, x_fact);
+                gdouble in_y = out_to_in_coord(iy, y_fact);
+                gint h = CLAMP((gint)in_y, 0, in_height - 1);
+                gint g = CLAMP((gint)in_x, 0, in_width - 1);
+                gdouble bx = in_x - floor(in_x) - 0.5;
+                gdouble by = in_y - floor(in_y) - 0.5;
+                gint signx = (bx >= 0) ? 1 : -1;
+                gint signy = (by >= 0) ? 1 : -1;
+                bx = ABS(bx);
+                by = ABS(by);
 
+                double ax0 = 0.0;
+                double ax1 = 0.0;
+                double ay0 = 0.0;
+                double ay1 = 0.0;
+
+                gdouble bc[3 * 3 * 3];  // 3x3 neighborhood, with RGB
+                for (gint dy = 0; dy < 3; ++dy)
+                    for (gint dx = 0; dx < 3; ++dx) {
+                        gint tx = CLAMP(dx * signx - signx + g, 0, in_width - 1);
+                        gint ty = CLAMP(dy * signy - signy + h, 0, in_height - 1);
+
+                        bc[(dy * 3 + dx) * 3] = in_img_array[to_1d_index(tx, ty, 0, in_width, 3)];
+                        bc[(dy * 3 + dx) * 3 + 1] =
+                            in_img_array[to_1d_index(tx, ty, 1, in_width, 3)];
+                        bc[(dy * 3 + dx) * 3 + 2] =
+                            in_img_array[to_1d_index(tx, ty, 2, in_width, 3)];
+
+                        ax0 = alphas[to_1d_index(g, h, 0, in_width, 2)] * (1 - 2 * by * by) +
+                              alphas[to_1d_index(g, ty, 0, in_width, 2)] * 2 * by * by;
+                        ax1 = alphas[to_1d_index(tx, h, 0, in_width, 2)] * (1 - 2 * by * by) +
+                              alphas[to_1d_index(tx, ty, 0, in_width, 2)] * 2 * by * by;
+                        ay0 = alphas[to_1d_index(g, h, 1, in_width, 2)] * (1 - 2 * bx * bx) +
+                              alphas[to_1d_index(tx, h, 1, in_width, 2)] * 2 * bx * bx;
+                        ay1 = alphas[to_1d_index(g, ty, 1, in_width, 2)] * (1 - 2 * bx * bx) +
+                              alphas[to_1d_index(tx, ty, 1, in_width, 2)] * 2 * bx * bx;
+                    }
+
+                gdouble ad4x = 3 * bx * bx - 4 * bx * bx * bx;
+                gdouble ad4y = 3 * by * by - 4 * by * by * by;
+
+                gdouble wx[3], wy[3];
+                wx[0] = ax0 * (bx * bx - bx + ad4x);
+                wx[1] = 1.0 - bx * bx - (1.0 + ax0 * 2.0 - ax1 * 2.0) * ad4x;
+                wx[2] =
+                    (1.0 - ax0) * bx * bx + ax0 * bx + ((1.0 + ax0 * 2.0 - ax1 * 2.0) - ax0) * ad4x;
+                wy[0] = ay0 * (by * by - by + ad4y);
+                wy[1] = 1.0 - by * by - (1.0 + ay0 * 2.0 - ay1 * 2.0) * ad4y;
+                wy[2] =
+                    (1.0 - ay0) * by * by + ay0 * by + ((1.0 + ay0 * 2.0 - ay1 * 2.0) - ay0) * ad4y;
+
+                for (gint c = 0; c < 3; c++) {
+                    gdouble tc = bc[c] * wx[0] * wy[0] + bc[3 + c] * wx[1] * wy[0] +
+                                 bc[6 + c] * wx[2] * wy[0] + bc[9 + c] * wx[0] * wy[1] +
+                                 bc[12 + c] * wx[1] * wy[1] + bc[15 + c] * wx[2] * wy[1] +
+                                 bc[18 + c] * wx[0] * wy[2] + bc[21 + c] * wx[1] * wy[2] +
+                                 bc[24 + c] * wx[2] * wy[2];
+
+                    out_img_array[to_1d_index(ix, iy, c, out_width, 3)] =
+                        roundf(CLAMP(tc, 0.0, 255.0));
+                }
+
+                /*
+                gdouble u = in_x - floor(in_x);
+                gdouble v = in_y - floor(in_y);
                 for (int ic = 0; ic < 3; ++ic) {
-                    // TODO Edge cases?
-                    gdouble w00 = in_img_array[to_1d_index(CLAMP(floor(out_x), 0, in_width - 1),
-                                                           CLAMP(floor(out_y), 0, in_height - 1),
-                                                           ic, in_width, 3)];
-                    gdouble w10 = in_img_array[to_1d_index(CLAMP(ceil(out_x), 0, in_width - 1),
-                                                           CLAMP(floor(out_y), 0, in_height - 1),
-                                                           ic, in_width, 3)];
-                    gdouble w01 = in_img_array[to_1d_index(CLAMP(floor(out_x), 0, in_width - 1),
-                                                           CLAMP(ceil(out_y), 0, in_height - 1), ic,
+                    gdouble w00 = in_img_array[to_1d_index(CLAMP(floor(in_x), 0, in_width - 1),
+                                                           CLAMP(floor(in_y), 0, in_height - 1), ic,
                                                            in_width, 3)];
-                    gdouble w11 = in_img_array[to_1d_index(CLAMP(ceil(out_x), 0, in_width - 1),
-                                                           CLAMP(ceil(out_y), 0, in_height - 1), ic,
+                    gdouble w10 = in_img_array[to_1d_index(CLAMP(ceil(in_x), 0, in_width - 1),
+                                                           CLAMP(floor(in_y), 0, in_height - 1), ic,
+                                                           in_width, 3)];
+                    gdouble w01 = in_img_array[to_1d_index(CLAMP(floor(in_x), 0, in_width - 1),
+                                                           CLAMP(ceil(in_y), 0, in_height - 1), ic,
+                                                           in_width, 3)];
+                    gdouble w11 = in_img_array[to_1d_index(CLAMP(ceil(in_x), 0, in_width - 1),
+                                                           CLAMP(ceil(in_y), 0, in_height - 1), ic,
                                                            in_width, 3)];
 
                     out_img_array[to_1d_index(ix, iy, ic, out_width, 3)] = (1 - u) * (1 - v) * w00 +
                                                                            u * (1 - v) * w10 +  //
                                                                            (1 - u) * v * w01 +  //
                                                                            u * v * w11;
-                }
+                }*/
 
+                /*
                 // DEBUG Write alphas to image
                 // Keep image size unchanged for this to work
                 guchar debug1 =
                     CLAMP(round(alphas[to_1d_index(ix, iy, 0, in_width, 2)] * 255.0 * 2.0), 0, 255);
                 guchar debug2 =
                     CLAMP(round(alphas[to_1d_index(ix, iy, 1, in_width, 2)] * 255.0 * 2.0), 0, 255);
-                out_img_array[to_1d_index(ix, iy, 0, in_width, 3)] = debug2;
-                out_img_array[to_1d_index(ix, iy, 1, in_width, 3)] = debug1;
-                out_img_array[to_1d_index(ix, iy, 2, in_width, 3)] = debug2;
+                out_img_array[to_1d_index(ix, iy, 0, in_width, 3)] = debug1;
+                out_img_array[to_1d_index(ix, iy, 1, in_width, 3)] = debug2;
+                out_img_array[to_1d_index(ix, iy, 2, in_width, 3)] = debug1;*/
 
                 // TODO How should this be calculated when using two-pass?
                 if (ix % 10 == 0)
@@ -157,20 +214,6 @@ static void calc_alphas(guchar* in_img_array,  // height * width * num_channels 
                         gint width) {
     for (gint ix = 0; ix < width; ++ix)
         for (gint iy = 0; iy < height; ++iy) {
-            // Vertical
-            if (iy > 0 && iy < height - 1) {
-                gdouble d0[3], d1[3];
-                for (gint ic = 0; ic < 3; ++ic) {
-                    d0[ic] = (gdouble)in_img_array[to_1d_index(ix, iy, ic, width, 3)] -
-                             (gdouble)in_img_array[to_1d_index(ix, iy - 1, ic, width, 3)];
-                    d1[ic] = (gdouble)in_img_array[to_1d_index(ix, iy + 1, ic, width, 3)] -
-                             (gdouble)in_img_array[to_1d_index(ix, iy, ic, width, 3)];
-                }
-                alphas[to_1d_index(ix, iy, 0, width, 2)] = alpha_from_gradients(d0, d1);
-            } else {
-                alphas[to_1d_index(ix, iy, 0, width, 2)] = 0.0;
-            }
-
             // Horizontal
             if (ix > 0 && ix < width - 1) {
                 gdouble d0[3], d1[3];
@@ -178,6 +221,20 @@ static void calc_alphas(guchar* in_img_array,  // height * width * num_channels 
                     d0[ic] = (gdouble)in_img_array[to_1d_index(ix, iy, ic, width, 3)] -
                              (gdouble)in_img_array[to_1d_index(ix - 1, iy, ic, width, 3)];
                     d1[ic] = (gdouble)in_img_array[to_1d_index(ix + 1, iy, ic, width, 3)] -
+                             (gdouble)in_img_array[to_1d_index(ix, iy, ic, width, 3)];
+                }
+                alphas[to_1d_index(ix, iy, 0, width, 2)] = alpha_from_gradients(d0, d1);
+            } else {
+                alphas[to_1d_index(ix, iy, 0, width, 2)] = 0.0;
+            }
+
+            // Vertical
+            if (iy > 0 && iy < height - 1) {
+                gdouble d0[3], d1[3];
+                for (gint ic = 0; ic < 3; ++ic) {
+                    d0[ic] = (gdouble)in_img_array[to_1d_index(ix, iy, ic, width, 3)] -
+                             (gdouble)in_img_array[to_1d_index(ix, iy - 1, ic, width, 3)];
+                    d1[ic] = (gdouble)in_img_array[to_1d_index(ix, iy + 1, ic, width, 3)] -
                              (gdouble)in_img_array[to_1d_index(ix, iy, ic, width, 3)];
                 }
                 alphas[to_1d_index(ix, iy, 1, width, 2)] = alpha_from_gradients(d0, d1);
