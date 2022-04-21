@@ -58,7 +58,7 @@ static void run(const gchar* name,
 
 /*  Local variables  */
 
-const PlugInVals default_vals = {0, 1, 2};
+const PlugInVals default_vals = {1, 1};
 const PlugInImageVals default_image_vals = {0};
 const PlugInDrawableVals default_drawable_vals = {0};
 const PlugInUIVals default_ui_vals = {TRUE};
@@ -85,9 +85,8 @@ static void query(void) {
                                   {GIMP_PDB_INT32, "run_mode", "Interactive, non-interactive"},
                                   {GIMP_PDB_IMAGE, "image", "Input image"},
                                   {GIMP_PDB_DRAWABLE, "drawable", "Input drawable"},
-                                  {GIMP_PDB_INT32, "dummy", "dummy1"},
-                                  {GIMP_PDB_INT32, "dummy", "dummy2"},
-                                  {GIMP_PDB_INT32, "dummy", "dummy3"}};
+                                  {GIMP_PDB_INT32, "x_size_out", "Width"},
+                                  {GIMP_PDB_INT32, "y_size_out", "Height"}};
 
     gimp_plugin_domain_register(PLUGIN_NAME, LOCALEDIR);
 
@@ -144,9 +143,8 @@ static void run(const gchar* name,
                 if (n_params != 8) {  // TODO Fix this value
                     status = GIMP_PDB_CALLING_ERROR;
                 } else {
-                    vals.dummy1 = param[3].data.d_int32;
-                    vals.dummy2 = param[4].data.d_int32;
-                    vals.dummy3 = param[5].data.d_int32;
+                    vals.x_size_out = param[3].data.d_int32;
+                    vals.y_size_out = param[4].data.d_int32;
                 }
                 break;
 

@@ -29,9 +29,8 @@
 #define __MAIN_H__
 
 typedef struct {
-    gint dummy1;
-    gint dummy2;
-    gint dummy3;
+    gint x_size_out;
+    gint y_size_out;
 } PlugInVals;
 
 typedef struct {

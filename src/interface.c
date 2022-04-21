@@ -97,12 +97,11 @@ gboolean dialog(gint32 image_ID,
     unit = gimp_image_get_unit(image_ID);
     gimp_image_get_resolution(image_ID, &xres, &yres);
 
-    // TODO Should we allow aspect ratio changes?
-    coordinates =
-        gimp_coordinates_new(unit, "%p", TRUE, TRUE, SPIN_BUTTON_WIDTH, GIMP_SIZE_ENTRY_UPDATE_SIZE,
-                             ui_vals->chain_active, TRUE, _("Width:"), drawable->width, xres, 1,
-                             GIMP_MAX_IMAGE_SIZE, 0, drawable->width, _("Height:"),
-                             drawable->height, yres, 1, GIMP_MAX_IMAGE_SIZE, 0, drawable->height);
+    coordinates = gimp_coordinates_new(
+        unit, "%p", TRUE, TRUE, SPIN_BUTTON_WIDTH, GIMP_SIZE_ENTRY_UPDATE_SIZE,
+        ui_vals->chain_active, TRUE,                                                         //
+        _("Width:"), drawable->width, xres, 1, GIMP_MAX_IMAGE_SIZE, 0, drawable->width,      // x
+        _("Height:"), drawable->height, yres, 1, GIMP_MAX_IMAGE_SIZE, 0, drawable->height);  // y
     gtk_box_pack_start(GTK_BOX(hbox), coordinates, FALSE, FALSE, 0);
     gtk_widget_show(coordinates);
 
@@ -117,6 +116,10 @@ gboolean dialog(gint32 image_ID,
         /*  Save ui values  */
         ui_state->chain_active =
             gimp_chain_button_get_active(GIMP_COORDINATES_CHAINBUTTON(coordinates));
+
+        // TODO I have no idea if this is right
+        vals->x_size_out = gimp_size_entry_get_refval(coordinates, 0);
+        vals->y_size_out = gimp_size_entry_get_refval(coordinates, 1);
     }
 
     gtk_widget_destroy(dlg);

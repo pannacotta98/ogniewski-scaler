@@ -153,8 +153,10 @@ void render(gint32 image_ID,
     guchar* in_img_array = g_new(guchar, in_width * in_height * 3);  // RGB is 3 bpp
     gimp_pixel_rgn_get_rect(&rgn_in, in_img_array, x1, y1, in_width, in_height);
 
-    gint out_width = 8 * in_width;
-    gint out_height = 8 * in_height;
+    gint out_width = vals->x_size_out;
+    gint out_height = vals->y_size_out;
+    gdouble x_fact = (gdouble)out_width / in_width;
+    gdouble y_fact = (gdouble)out_height / in_height;
 
     gimp_image_undo_group_start(gimp_item_get_image(drawable->drawable_id));
 
@@ -175,8 +177,8 @@ void render(gint32 image_ID,
 
         for (int ix = 0; ix < out_width; ++ix)
             for (int iy = 0; iy < out_height; ++iy) {
-                gdouble out_x = out_to_in_coord(ix, 8);
-                gdouble out_y = out_to_in_coord(iy, 8);
+                gdouble out_x = out_to_in_coord(ix, x_fact);
+                gdouble out_y = out_to_in_coord(iy, y_fact);
                 gdouble u = out_x - floor(out_x);
                 gdouble v = out_y - floor(out_y);
 
@@ -199,12 +201,6 @@ void render(gint32 image_ID,
                                                                            u * (1 - v) * w10 +  //
                                                                            (1 - u) * v * w01 +  //
                                                                            u * v * w11;
-
-                    // out_img_array[to_1d_index(ix, iy, ic, out_width)] =
-                    //     in_img_array[to_1d_index(CLAMP(out_to_in_coord(ix, 4), 0, in_width),   //
-                    //     x
-                    //                              CLAMP(out_to_in_coord(iy, 2), 0, in_height),  //
-                    //                              y ic,  // channel in_width)];
                 }
             }
 
@@ -228,7 +224,7 @@ static void calc_alpha() {
 }
 
 static inline gdouble out_to_in_coord(gint out, gdouble factor) {
-    return (out - 0.5) * (1 / factor) - 0.5;
+    return (out - 0.5) * (1 / factor) + 0.5;
 }
 
 static inline gint to_1d_index(gint x, gint y, gint channel, gint width, gint num_channels) {
