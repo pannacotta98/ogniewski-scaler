@@ -155,29 +155,6 @@ void render(gint32 image_ID,
                 }
 
                 /*
-                gdouble u = in_x - floor(in_x);
-                gdouble v = in_y - floor(in_y);
-                for (int ic = 0; ic < 3; ++ic) {
-                    gdouble w00 = in_img_array[to_1d_index(CLAMP(floor(in_x), 0, in_width - 1),
-                                                           CLAMP(floor(in_y), 0, in_height - 1), ic,
-                                                           in_width, 3)];
-                    gdouble w10 = in_img_array[to_1d_index(CLAMP(ceil(in_x), 0, in_width - 1),
-                                                           CLAMP(floor(in_y), 0, in_height - 1), ic,
-                                                           in_width, 3)];
-                    gdouble w01 = in_img_array[to_1d_index(CLAMP(floor(in_x), 0, in_width - 1),
-                                                           CLAMP(ceil(in_y), 0, in_height - 1), ic,
-                                                           in_width, 3)];
-                    gdouble w11 = in_img_array[to_1d_index(CLAMP(ceil(in_x), 0, in_width - 1),
-                                                           CLAMP(ceil(in_y), 0, in_height - 1), ic,
-                                                           in_width, 3)];
-
-                    out_img_array[to_1d_index(ix, iy, ic, out_width, 3)] = (1 - u) * (1 - v) * w00 +
-                                                                           u * (1 - v) * w10 +  //
-                                                                           (1 - u) * v * w01 +  //
-                                                                           u * v * w11;
-                }*/
-
-                /*
                 // DEBUG Write alphas to image
                 // Keep image size unchanged for this to work
                 guchar debug1 =
@@ -275,7 +252,7 @@ static gdouble alpha_from_gradients(gdouble d0[], gdouble d1[]) {
 }
 
 static inline gdouble out_to_in_coord(gint out, gdouble factor) {
-    return (out + 0.5) * (1 / factor) - 0.5;
+    return (out + 0.5) * (1 / factor);
 }
 
 static inline gint to_1d_index(gint x, gint y, gint channel, gint width, gint num_channels) {
