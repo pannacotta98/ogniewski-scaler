@@ -41,8 +41,6 @@ static inline gdouble out_to_in_coord(gint out, gdouble factor);
 static void calc_alphas(guchar* in_img_array, gdouble* alphas, gint height, gint width);
 static gdouble alpha_from_gradients(gdouble d0[], gdouble d1[]);
 
-// TODO How do we handle edge cases?
-
 void render(gint32 image_ID,
             GimpDrawable* drawable,
             PlugInVals* vals,
@@ -154,17 +152,6 @@ void render(gint32 image_ID,
                         roundf(CLAMP(tc, 0.0, 255.0));
                 }
 
-                /*
-                // DEBUG Write alphas to image
-                // Keep image size unchanged for this to work
-                guchar debug1 =
-                    CLAMP(round(alphas[to_1d_index(ix, iy, 0, in_width, 2)] * 255.0 * 2.0), 0, 255);
-                guchar debug2 =
-                    CLAMP(round(alphas[to_1d_index(ix, iy, 1, in_width, 2)] * 255.0 * 2.0), 0, 255);
-                out_img_array[to_1d_index(ix, iy, 0, in_width, 3)] = debug1;
-                out_img_array[to_1d_index(ix, iy, 1, in_width, 3)] = debug2;
-                out_img_array[to_1d_index(ix, iy, 2, in_width, 3)] = debug1;*/
-
                 // TODO How should this be calculated when using two-pass?
                 if (ix % 10 == 0)
                     gimp_progress_update((gdouble)(ix) / (gdouble)(out_width));
@@ -177,6 +164,8 @@ void render(gint32 image_ID,
         gimp_drawable_update(resized_drawable->drawable_id, x1, y1, out_width, out_height);
 
         gimp_drawable_detach(resized_drawable);
+
+        g_free(out_img_array);
     }
 
     g_free(in_img_array);
