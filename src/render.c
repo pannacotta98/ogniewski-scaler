@@ -27,6 +27,7 @@
 
 #include "config.h"
 
+#include <assert.h>
 #include <gtk/gtk.h>
 #include <libgimp/gimp.h>
 
@@ -37,6 +38,11 @@
 
 static inline gint to_1d_index(gint x, gint y, gint channel, gint width, gint num_channels);
 static inline gdouble out_to_in_coord(gint out, gdouble factor);
+static void calc_alphas(guchar* in_img_array,  // height * width * num_channels of original img
+                        gdouble* alphas,       // out, height * width * 2 (vert & hor)
+                        gint height,
+                        gint width);
+static gdouble alpha_from_gradients(gdouble d0[], gdouble d1[]);
 
 // TODO How do we handle edge cases?
 
@@ -52,106 +58,18 @@ void render(gint32 image_ID,
     gint in_height = y2 - y1;
 
     // Makes everything a lot faster, see https://developer.gimp.org/writing-a-plug-in/3/index.html
+    // TODO Check if this makes any difference anymore
     gimp_tile_cache_ntiles(2 * (drawable->width / gimp_tile_width() + 1));
 
     GimpPixelRgn rgn_in, rgn_out;
     gimp_pixel_rgn_init(&rgn_in, drawable, x1, y1, in_width, in_height, FALSE, FALSE);
     gimp_pixel_rgn_init(&rgn_out, drawable, x1, y1, in_width, in_height, TRUE, TRUE);
 
-    // /* Initialise enough memory for row1, row2, row3, outrow */
-    // guchar* row1 = g_new(guchar, channels * in_width);
-    // guchar* row2 = g_new(guchar, channels * in_width);
-    // guchar* row3 = g_new(guchar, channels * in_width);
-    // guchar* outrow = g_new(guchar, channels * in_width);
-
-    // for (gint i = y1; i < y2; i++) {
-    //     /* Get row i-1, i, i+1 */
-    //     gimp_pixel_rgn_get_row(&rgn_in, row1, x1, MAX(y1, i - 1), in_width);
-    //     gimp_pixel_rgn_get_row(&rgn_in, row2, x1, i, in_width);
-    //     gimp_pixel_rgn_get_row(&rgn_in, row3, x1, MIN(y2 - 1, i + 1), in_width);
-
-    //     for (gint j = x1; j < x2; j++) {
-    //         // TODO Faster to not declare every time?
-    //         double vert_alpha = 0.0;
-    //         double hori_alpha = 0.0;
-    //         gboolean vert_changed = FALSE;
-    //         gboolean hori_changed = FALSE;
-
-    //         for (gint k = 0; k < channels; k++) {
-    //             // Trying out some vertical alpha calculations
-    //             double d0 =
-    //                 (double)row2[channels * (j - x1) + k] - (double)row1[channels * (j - x1) +
-    //                 k];
-    //             double d1 =
-    //                 (double)row3[channels * (j - x1) + k] - (double)row2[channels * (j - x1) +
-    //                 k];
-
-    //             if (d0 != 0.0 || d1 != 0.0) {
-    //                 double maybe_alpha = 0.0;
-
-    //                 if ((d0 > 0.0 && d1 > 0.0) || (d0 < 0.0 && d1 < 0.0)) {
-    //                     double td = 0.5 * (d0 + d1);
-    //                     maybe_alpha = 0.5;
-
-    //                     if (fabs(d0) < fabs(td))
-    //                         maybe_alpha = fabs(d0) / fabs(td) * 0.5;
-    //                     if (fabs(d1) < fabs(td))
-    //                         maybe_alpha = fabs(d1) / fabs(td) * 0.5;
-    //                 }
-
-    //                 if (!vert_changed || (vert_alpha > maybe_alpha)) {
-    //                     vert_alpha = maybe_alpha;
-    //                     vert_changed = TRUE;
-    //                 }
-    //             }
-
-    //             // Trying out some horizontal alpha calculations
-    //             d0 = (double)row2[channels * (j - x1) + k] -
-    //                  (double)row2[channels * MAX((j - 1 - x1), 0) + k];
-    //             d1 = (double)row2[channels * MIN((j + 1 - x1), in_width - 1) + k] -
-    //                  (double)row2[channels * (j - x1) + k];
-
-    //             if (d0 != 0.0 || d1 != 0.0) {
-    //                 double maybe_alpha = 0.0;
-
-    //                 if ((d0 > 0.0 && d1 > 0.0) || (d0 < 0.0 && d1 < 0.0)) {
-    //                     double td = 0.5 * (d0 + d1);
-    //                     maybe_alpha = 0.5;
-
-    //                     if (fabs(d0) < fabs(td))
-    //                         maybe_alpha = fabs(d0) / fabs(td) * 0.5;
-    //                     if (fabs(d1) < fabs(td))
-    //                         maybe_alpha = fabs(d1) / fabs(td) * 0.5;
-    //                 }
-
-    //                 if (!hori_changed || (hori_alpha > maybe_alpha)) {
-    //                     hori_alpha = maybe_alpha;
-    //                     hori_changed = TRUE;
-    //                 }
-    //             }
-    //         }
-    //         guchar debug1 = CLAMP(round(vert_alpha * 255.0 * 2.0), 0, 255);
-    //         guchar debug2 = CLAMP(round(hori_alpha * 255.0 * 2.0), 0, 255);
-    //         outrow[channels * (j - x1) + 0] = debug2;
-    //         outrow[channels * (j - x1) + 1] = debug1;
-    //         outrow[channels * (j - x1) + 2] = debug2;
-    //     }
-
-    //     gimp_pixel_rgn_set_row(&rgn_out, outrow, x1, i, in_width);
-
-    //     if (i % 10 == 0)
-    //         gimp_progress_update((gdouble)(i - y1) / (gdouble)(in_height));
-    // }
-
-    // g_free(row1);
-    // g_free(row2);
-    // g_free(row3);
-    // g_free(outrow);
-
-    // ===================
-
     guchar* in_img_array = g_new(guchar, in_width * in_height * 3);  // RGB is 3 bpp
     gimp_pixel_rgn_get_rect(&rgn_in, in_img_array, x1, y1, in_width, in_height);
+
+    gdouble* alphas = g_new(gdouble, in_width * in_height * 2);  // vert and hor ==> 2 channels
+    calc_alphas(in_img_array, alphas, in_height, in_width);
 
     gint out_width = vals->x_size_out;
     gint out_height = vals->y_size_out;
@@ -160,7 +78,6 @@ void render(gint32 image_ID,
 
     gimp_image_undo_group_start(gimp_item_get_image(drawable->drawable_id));
 
-    // TESTING resizing the image
     if (gimp_image_resize(gimp_item_get_image(drawable->drawable_id), out_width, out_height, 0,
                           0)) {
         gimp_layer_resize_to_image_size(
@@ -175,6 +92,7 @@ void render(gint32 image_ID,
         const int out_img_array_size = out_width * out_height * 3;  // RGB is 3 bpp
         guchar* out_img_array = g_new(guchar, out_img_array_size);
 
+        // TODO Check if y first then x is faster
         for (int ix = 0; ix < out_width; ++ix)
             for (int iy = 0; iy < out_height; ++iy) {
                 gdouble out_x = out_to_in_coord(ix, x_fact);
@@ -202,6 +120,20 @@ void render(gint32 image_ID,
                                                                            (1 - u) * v * w01 +  //
                                                                            u * v * w11;
                 }
+
+                // DEBUG Write alphas to image
+                // Keep image size unchanged for this to work
+                guchar debug1 =
+                    CLAMP(round(alphas[to_1d_index(ix, iy, 0, in_width, 2)] * 255.0 * 2.0), 0, 255);
+                guchar debug2 =
+                    CLAMP(round(alphas[to_1d_index(ix, iy, 1, in_width, 2)] * 255.0 * 2.0), 0, 255);
+                out_img_array[to_1d_index(ix, iy, 0, in_width, 3)] = debug2;
+                out_img_array[to_1d_index(ix, iy, 1, in_width, 3)] = debug1;
+                out_img_array[to_1d_index(ix, iy, 2, in_width, 3)] = debug2;
+
+                // TODO How should this be calculated when using two-pass?
+                if (ix % 10 == 0)
+                    gimp_progress_update((gdouble)(ix) / (gdouble)(out_width));
             }
 
         gimp_pixel_rgn_set_rect(&dest_rgn, (guchar*)out_img_array, 0, 0, out_width, out_height);
@@ -214,19 +146,82 @@ void render(gint32 image_ID,
     }
 
     g_free(in_img_array);
+    g_free(alphas);
     gimp_image_undo_group_end(gimp_item_get_image(drawable->drawable_id));
-    g_message(_("Lakrits3"));
 }
 
 // Not alpha as in alpha channel
-static void calc_alpha() {
-    // TODO
+static void calc_alphas(guchar* in_img_array,  // height * width * num_channels of original img
+                        gdouble* alphas,       // out, height * width * 2 (vert & hor)
+                        gint height,
+                        gint width) {
+    for (gint ix = 0; ix < width; ++ix)
+        for (gint iy = 0; iy < height; ++iy) {
+            // Vertical
+            if (iy > 0 && iy < height - 1) {
+                gdouble d0[3], d1[3];
+                for (gint ic = 0; ic < 3; ++ic) {
+                    d0[ic] = (gdouble)in_img_array[to_1d_index(ix, iy, ic, width, 3)] -
+                             (gdouble)in_img_array[to_1d_index(ix, iy - 1, ic, width, 3)];
+                    d1[ic] = (gdouble)in_img_array[to_1d_index(ix, iy + 1, ic, width, 3)] -
+                             (gdouble)in_img_array[to_1d_index(ix, iy, ic, width, 3)];
+                }
+                alphas[to_1d_index(ix, iy, 0, width, 2)] = alpha_from_gradients(d0, d1);
+            } else {
+                alphas[to_1d_index(ix, iy, 0, width, 2)] = 0.0;
+            }
+
+            // Horizontal
+            if (ix > 0 && ix < width - 1) {
+                gdouble d0[3], d1[3];
+                for (gint ic = 0; ic < 3; ++ic) {
+                    d0[ic] = (gdouble)in_img_array[to_1d_index(ix, iy, ic, width, 3)] -
+                             (gdouble)in_img_array[to_1d_index(ix - 1, iy, ic, width, 3)];
+                    d1[ic] = (gdouble)in_img_array[to_1d_index(ix + 1, iy, ic, width, 3)] -
+                             (gdouble)in_img_array[to_1d_index(ix, iy, ic, width, 3)];
+                }
+                alphas[to_1d_index(ix, iy, 1, width, 2)] = alpha_from_gradients(d0, d1);
+            } else {
+                alphas[to_1d_index(ix, iy, 1, width, 2)] = 0.0;
+            }
+        }
+}
+
+static gdouble alpha_from_gradients(gdouble d0[], gdouble d1[]) {
+    gdouble alpha = 0.0;
+    gboolean changed = FALSE;
+
+    for (gint ic = 0; ic < 3; ++ic) {
+        // Ignore if any gradient is zero. If all are zero, then so is alpha.
+        if (d0[ic] != 0.0 || d1[ic] != 0.0) {
+            double maybe_alpha = 0.0;
+
+            // If sgn(d0)==sgn(d1)
+            if ((d0[ic] > 0.0 && d1[ic] > 0.0) || (d0[ic] < 0.0 && d1[ic] < 0.0)) {
+                double td = 0.5 * (d0[ic] + d1[ic]);
+                maybe_alpha = 0.5;
+
+                if (fabs(d0[ic]) < fabs(td))
+                    maybe_alpha = fabs(d0[ic]) / fabs(td) * 0.5;
+                if (fabs(d1[ic]) < fabs(td))
+                    maybe_alpha = fabs(d1[ic]) / fabs(td) * 0.5;
+            }
+
+            if (!changed || (alpha > maybe_alpha)) {
+                alpha = maybe_alpha;
+                changed = TRUE;
+            }
+        }
+    }
+
+    return alpha;
 }
 
 static inline gdouble out_to_in_coord(gint out, gdouble factor) {
-    return (out - 0.5) * (1 / factor) + 0.5;
+    return (out + 0.5) * (1 / factor) - 0.5;
 }
 
 static inline gint to_1d_index(gint x, gint y, gint channel, gint width, gint num_channels) {
+    assert(x >= 0 && y >= 0 && channel >= 0 && channel < num_channels && x < width);
     return (y * width * num_channels) + x * num_channels + channel;
 }
