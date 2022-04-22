@@ -52,10 +52,6 @@ void render(gint32 image_ID,
     gint in_width = x2 - x1;
     gint in_height = y2 - y1;
 
-    // Makes everything a lot faster, see https://developer.gimp.org/writing-a-plug-in/3/index.html
-    // TODO Check if this makes any difference anymore
-    gimp_tile_cache_ntiles(2 * (drawable->width / gimp_tile_width() + 1));
-
     GimpPixelRgn rgn_in, rgn_out;
     gimp_pixel_rgn_init(&rgn_in, drawable, x1, y1, in_width, in_height, FALSE, FALSE);
     gimp_pixel_rgn_init(&rgn_out, drawable, x1, y1, in_width, in_height, TRUE, TRUE);
@@ -88,8 +84,8 @@ void render(gint32 image_ID,
         guchar* out_img_array = g_new(guchar, out_img_array_size);
 
         // TODO Check if y first then x is faster
-        for (int ix = 0; ix < out_width; ++ix)
-            for (int iy = 0; iy < out_height; ++iy) {
+        for (int iy = 0; iy < out_height; ++iy)
+            for (int ix = 0; ix < out_width; ++ix) {
                 gdouble in_x = out_to_in_coord(ix, x_fact);
                 gdouble in_y = out_to_in_coord(iy, y_fact);
                 gint h = CLAMP((gint)in_y, 0, in_height - 1);
@@ -152,9 +148,8 @@ void render(gint32 image_ID,
                         roundf(CLAMP(tc, 0.0, 255.0));
                 }
 
-                // TODO How should this be calculated when using two-pass?
-                if (ix % 10 == 0)
-                    gimp_progress_update((gdouble)(ix) / (gdouble)(out_width));
+                if (iy % 10 == 0)
+                    gimp_progress_update((gdouble)(iy) / (gdouble)(out_height));
             }
 
         gimp_pixel_rgn_set_rect(&dest_rgn, (guchar*)out_img_array, 0, 0, out_width, out_height);
