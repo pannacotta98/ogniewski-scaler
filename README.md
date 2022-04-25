@@ -21,14 +21,15 @@ sudo make install
 ```
 
 ### Windows
-The plugin can be built for Windows using msys2, here given for 64bit x86. I'm not quite sure if all these steps are needed, since I tried stuff untill it worked.
+The plugin can be built for Windows using mingw, here given for 64bit x86. I'm not quite sure if all these steps are needed, since I tried stuff untill it worked.
 
-Install [msys2](https://msys2.github.io/) and update the system using
+Install [msys2](https://msys2.github.io/) and run "MSYS2 MinGW x64". Update the system using
 ```bash
 pacman -Syyuu
 ```
+Restart the terminal.
 
-For 64bit Windows, install the following dependencies (**TODO** I suspect many of these are not needed, i took them from [here](https://wiki.gimp.org/wiki/Hacking:Building/Windows#Cross-Compiling_GIMP_under_UNIX_using_crossroad) which is for building the GIMP)
+Install the following dependencies (**TODO** I suspect many of these are not needed, i took them from [here](https://wiki.gimp.org/wiki/Hacking:Building/Windows#Cross-Compiling_GIMP_under_UNIX_using_crossroad) which is for building the GIMP)
 ```bash
 pacman -S --needed \
     base-devel \
