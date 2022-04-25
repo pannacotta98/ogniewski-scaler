@@ -1,1 +1,5 @@
 *.in linguist-vendored
+*.po linguist-vendored
+*.am linguist-vendored
+*.sh linguist-vendored
+*.gmo linguist-vendored
