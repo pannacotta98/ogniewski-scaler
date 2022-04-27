@@ -7,9 +7,9 @@ Still not quite finished, but it should work.
 ### Ubuntu
 On Ubuntu 20.04.4 LTS on ARM64 in a VM on an M1 MacBook Air, the following installs were needed
 ```bash
-$ sudo apt install gimp
-$ sudo apt install build-essential
-$ sudo apt install libgimp2.0-dev
+sudo apt install gimp
+sudo apt install build-essential
+sudo apt install libgimp2.0-dev
 ```
 Installing GIMP via snap can have some problems with accessing the plugins folder.
 
@@ -99,7 +99,8 @@ cpanm XML::Parser
 
 Finally, build the plugin using
 ```bash
-./configure
+# The -mwindows flag to the linker makes sure no command window is opened
+./configure LDFLAGS=-mwindows
 make
 make install
 ```
