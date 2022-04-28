@@ -35,22 +35,13 @@
 
 #include "plugin-intl.h"
 
-/*  Constants  */
-
-#define SCALE_WIDTH 180
+// Constants
 #define SPIN_BUTTON_WIDTH 75
-#define RANDOM_SEED_WIDTH 100
 
-/*  Local function prototypes  */
-
-static gboolean dialog_image_constraint_func(gint32 image_id, gpointer data);
-
-/*  Local variables  */
-
+// Local variables
 static PlugInUIVals* ui_state = NULL;
 
-/*  Public functions  */
-
+// Public functions
 gboolean dialog(gint32 image_ID,
                 GimpDrawable* drawable,
                 PlugInVals* vals,
@@ -83,7 +74,7 @@ gboolean dialog(gint32 image_ID,
     gtk_container_set_border_width(GTK_CONTAINER(main_vbox), 12);
     gtk_container_add(GTK_CONTAINER(GTK_DIALOG(dlg)->vbox), main_vbox);
 
-    /*  gimp_coordinates_new() example  */
+    // The size selection
 
     frame = gimp_frame_new(_("Size"));
     gtk_box_pack_start(GTK_BOX(main_vbox), frame, FALSE, FALSE, 0);
@@ -105,7 +96,7 @@ gboolean dialog(gint32 image_ID,
     gtk_box_pack_start(GTK_BOX(hbox), coordinates, FALSE, FALSE, 0);
     gtk_widget_show(coordinates);
 
-    /*  Show the main containers  */
+    // Show the main container
 
     gtk_widget_show(main_vbox);
     gtk_widget_show(dlg);
@@ -113,11 +104,8 @@ gboolean dialog(gint32 image_ID,
     run = (gimp_dialog_run(GIMP_DIALOG(dlg)) == GTK_RESPONSE_OK);
 
     if (run) {
-        /*  Save ui values  */
         ui_state->chain_active =
             gimp_chain_button_get_active(GIMP_COORDINATES_CHAINBUTTON(coordinates));
-
-        // TODO I have no idea if this is right
         vals->x_size_out = gimp_size_entry_get_refval(coordinates, 0);
         vals->y_size_out = gimp_size_entry_get_refval(coordinates, 1);
     }
@@ -125,10 +113,4 @@ gboolean dialog(gint32 image_ID,
     gtk_widget_destroy(dlg);
 
     return run;
-}
-
-/*  Private functions  */
-
-static gboolean dialog_image_constraint_func(gint32 image_id, gpointer data) {
-    return (gimp_image_base_type(image_id) == GIMP_RGB);
 }

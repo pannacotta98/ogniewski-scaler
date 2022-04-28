@@ -140,7 +140,7 @@ static void run(const gchar* name,
     if (strcmp(name, PROCEDURE_NAME) == 0) {
         switch (run_mode) {
             case GIMP_RUN_NONINTERACTIVE:
-                if (n_params != 8) {  // TODO Fix this value
+                if (n_params != 5) {
                     status = GIMP_PDB_CALLING_ERROR;
                 } else {
                     vals.x_size_out = param[3].data.d_int32;
