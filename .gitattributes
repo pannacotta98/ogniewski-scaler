@@ -1,0 +1,10 @@
+*.in linguist-vendored
+*.po linguist-vendored
+*.am linguist-vendored
+*.sh linguist-vendored
+*.gmo linguist-vendored
+configure linguist-vendored
+missing linguist-vendored
+depcomp linguist-vendored
+mkinstalldirs linguist-vendored
+install-sh linguist-vendored
