@@ -67,7 +67,7 @@ gboolean dialog(gint32 image_ID,
     gimp_ui_init(PLUGIN_NAME, TRUE);
 
     dlg = gimp_dialog_new(_("Ogniewski Scaler"), PLUGIN_NAME, NULL, 0, gimp_standard_help_func,
-                          "plug-in-template", GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OK,
+                          "ogniewski-scaler", GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OK,
                           GTK_RESPONSE_OK, NULL);
 
     main_vbox = gtk_vbox_new(FALSE, 12);

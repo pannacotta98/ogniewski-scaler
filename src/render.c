@@ -83,7 +83,6 @@ void render(gint32 image_ID,
         const int out_img_array_size = out_width * out_height * 3;  // RGB is 3 bpp
         guchar* out_img_array = g_new(guchar, out_img_array_size);
 
-        // TODO Check if y first then x is faster
         for (int iy = 0; iy < out_height; ++iy)
             for (int ix = 0; ix < out_width; ++ix) {
                 gdouble in_x = out_to_in_coord(ix, x_fact);
