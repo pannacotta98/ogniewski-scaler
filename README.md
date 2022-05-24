@@ -1,5 +1,5 @@
 # Ogniewski Scaler
-A GIMP plugin that scales image using the interpolation method presented by Jens Ogniewski in [Artifact-Free Color Interpolation](https://doi.org/10.1145/2788539.2788556). The plugin was developed as a small part of a masters thesis at [Linköping University](https://liu.se/), and [MindRoad AB](https://www.mindroad.se/en-GB).
+A GIMP plugin that scales image using the interpolation method presented by Jens Ogniewski in [Artifact-Free Color Interpolation](https://doi.org/10.1145/2788539.2788556). The plugin was developed as a small part of a masters thesis at [MindRoad AB](https://www.mindroad.se/en-GB) and [Linköping University](https://liu.se/).
 
 Still not quite finished, but it should work.
 
