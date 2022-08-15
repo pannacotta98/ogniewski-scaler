@@ -98,7 +98,7 @@ static void query(void) {
 
     gimp_install_procedure(PROCEDURE_NAME,
                            "Upscaling based on Artifact-Free Color Interpolation by Jens Ogniewski",
-                           "Help", NULL, NULL, NULL, N_("Ogniewski Scaler..."), "RGB", GIMP_PLUGIN,
+                           "Help", NULL, NULL, NULL, N_("Ogniewski Scaler..."), "RGB*, GRAY*", GIMP_PLUGIN,
                            G_N_ELEMENTS(args), 0, args, NULL);
 
     gimp_plugin_menu_register(PROCEDURE_NAME, "<Image>/Image/");
