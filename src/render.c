@@ -38,8 +38,8 @@
 
 static inline gint to_1d_index(gint x, gint y, gint channel, gint width, gint num_channels);
 static inline gdouble out_to_in_coord(gint out, gdouble factor);
-static void calc_alphas(guchar* in_img_array, gdouble* alphas, gint height, gint width);
-static gdouble alpha_from_gradients(gdouble d0[], gdouble d1[]);
+static void calc_alphas(guchar* in_img_array, gdouble* alphas, gint height, gint width, gint channels);
+static gdouble alpha_from_gradients(gdouble d0[], gdouble d1[], gint channels);
 
 void render(gint32 image_ID,
             GimpDrawable* drawable,
@@ -56,11 +56,11 @@ void render(gint32 image_ID,
     gimp_pixel_rgn_init(&rgn_in, drawable, x1, y1, in_width, in_height, FALSE, FALSE);
     gimp_pixel_rgn_init(&rgn_out, drawable, x1, y1, in_width, in_height, TRUE, TRUE);
 
-    guchar* in_img_array = g_new(guchar, in_width * in_height * 3);  // RGB is 3 bpp
+    guchar* in_img_array = g_new(guchar, in_width * in_height * channels);
     gimp_pixel_rgn_get_rect(&rgn_in, in_img_array, x1, y1, in_width, in_height);
 
     gdouble* alphas = g_new(gdouble, in_width * in_height * 2);  // vert and hor ==> 2 channels
-    calc_alphas(in_img_array, alphas, in_height, in_width);
+    calc_alphas(in_img_array, alphas, in_height, in_width, channels);
 
     gint out_width = vals->x_size_out;
     gint out_height = vals->y_size_out;
@@ -80,7 +80,7 @@ void render(gint32 image_ID,
         GimpPixelRgn dest_rgn;
         gimp_pixel_rgn_init(&dest_rgn, resized_drawable, 0, 0, out_width, out_height, TRUE, TRUE);
 
-        const int out_img_array_size = out_width * out_height * 3;  // RGB is 3 bpp
+        const int out_img_array_size = out_width * out_height * channels;
         guchar* out_img_array = g_new(guchar, out_img_array_size);
 
         for (int iy = 0; iy < out_height; ++iy)
@@ -101,17 +101,14 @@ void render(gint32 image_ID,
                 double ay0 = 0.0;
                 double ay1 = 0.0;
 
-                gdouble bc[3 * 3 * 3];  // 3x3 neighborhood, with RGB
+                gdouble bc[3 * 3 * channels];  // 3x3 neighborhood
                 for (gint dy = 0; dy < 3; ++dy)
                     for (gint dx = 0; dx < 3; ++dx) {
                         gint tx = CLAMP(dx * signx - signx + g, 0, in_width - 1);
                         gint ty = CLAMP(dy * signy - signy + h, 0, in_height - 1);
 
-                        bc[(dy * 3 + dx) * 3] = in_img_array[to_1d_index(tx, ty, 0, in_width, 3)];
-                        bc[(dy * 3 + dx) * 3 + 1] =
-                            in_img_array[to_1d_index(tx, ty, 1, in_width, 3)];
-                        bc[(dy * 3 + dx) * 3 + 2] =
-                            in_img_array[to_1d_index(tx, ty, 2, in_width, 3)];
+                        for (gint c = 0; c < channels; ++c)
+                            bc[(dy * 3 + dx) * channels + c] = in_img_array[to_1d_index(tx, ty, c, in_width, channels)];
 
                         ax0 = alphas[to_1d_index(g, h, 0, in_width, 2)] * (1 - 2 * by * by) +
                               alphas[to_1d_index(g, ty, 0, in_width, 2)] * 2 * by * by;
@@ -136,14 +133,18 @@ void render(gint32 image_ID,
                 wy[2] =
                     (1.0 - ay0) * by * by + ay0 * by + ((1.0 + ay0 * 2.0 - ay1 * 2.0) - ay0) * ad4y;
 
-                for (gint c = 0; c < 3; c++) {
-                    gdouble tc = bc[c] * wx[0] * wy[0] + bc[3 + c] * wx[1] * wy[0] +
-                                 bc[6 + c] * wx[2] * wy[0] + bc[9 + c] * wx[0] * wy[1] +
-                                 bc[12 + c] * wx[1] * wy[1] + bc[15 + c] * wx[2] * wy[1] +
-                                 bc[18 + c] * wx[0] * wy[2] + bc[21 + c] * wx[1] * wy[2] +
-                                 bc[24 + c] * wx[2] * wy[2];
+                for (gint c = 0; c < channels; c++) {
+                    gdouble tc = bc[c] * wx[0] * wy[0] +
+                                 bc[channels + c] * wx[1] * wy[0] +
+                                 bc[channels * 2 + c] * wx[2] * wy[0] +
+                                 bc[channels * 3 + c] * wx[0] * wy[1] +
+                                 bc[channels * 4 + c] * wx[1] * wy[1] +
+                                 bc[channels * 5 + c] * wx[2] * wy[1] +
+                                 bc[channels * 6 + c] * wx[0] * wy[2] +
+                                 bc[channels * 7 + c] * wx[1] * wy[2] +
+                                 bc[channels * 8 + c] * wx[2] * wy[2];
 
-                    out_img_array[to_1d_index(ix, iy, c, out_width, 3)] =
+                    out_img_array[to_1d_index(ix, iy, c, out_width, channels)] =
                         roundf(CLAMP(tc, 0.0, 255.0));
                 }
 
@@ -171,44 +172,45 @@ void render(gint32 image_ID,
 static void calc_alphas(guchar* in_img_array,  // height * width * num_channels of original img
                         gdouble* alphas,       // out, height * width * 2 (vert & hor)
                         gint height,
-                        gint width) {
+                        gint width,
+                        gint channels) {
     for (gint ix = 0; ix < width; ++ix)
         for (gint iy = 0; iy < height; ++iy) {
             // Horizontal
             if (ix > 0 && ix < width - 1) {
-                gdouble d0[3], d1[3];
-                for (gint ic = 0; ic < 3; ++ic) {
-                    d0[ic] = (gdouble)in_img_array[to_1d_index(ix, iy, ic, width, 3)] -
-                             (gdouble)in_img_array[to_1d_index(ix - 1, iy, ic, width, 3)];
-                    d1[ic] = (gdouble)in_img_array[to_1d_index(ix + 1, iy, ic, width, 3)] -
-                             (gdouble)in_img_array[to_1d_index(ix, iy, ic, width, 3)];
+                gdouble d0[channels], d1[channels];
+                for (gint ic = 0; ic < channels; ++ic) {
+                    d0[ic] = (gdouble)in_img_array[to_1d_index(ix, iy, ic, width, channels)] -
+                             (gdouble)in_img_array[to_1d_index(ix - 1, iy, ic, width, channels)];
+                    d1[ic] = (gdouble)in_img_array[to_1d_index(ix + 1, iy, ic, width, channels)] -
+                             (gdouble)in_img_array[to_1d_index(ix, iy, ic, width, channels)];
                 }
-                alphas[to_1d_index(ix, iy, 0, width, 2)] = alpha_from_gradients(d0, d1);
+                alphas[to_1d_index(ix, iy, 0, width, 2)] = alpha_from_gradients(d0, d1, channels);
             } else {
                 alphas[to_1d_index(ix, iy, 0, width, 2)] = 0.0;
             }
 
             // Vertical
             if (iy > 0 && iy < height - 1) {
-                gdouble d0[3], d1[3];
-                for (gint ic = 0; ic < 3; ++ic) {
-                    d0[ic] = (gdouble)in_img_array[to_1d_index(ix, iy, ic, width, 3)] -
-                             (gdouble)in_img_array[to_1d_index(ix, iy - 1, ic, width, 3)];
-                    d1[ic] = (gdouble)in_img_array[to_1d_index(ix, iy + 1, ic, width, 3)] -
-                             (gdouble)in_img_array[to_1d_index(ix, iy, ic, width, 3)];
+                gdouble d0[channels], d1[channels];
+                for (gint ic = 0; ic < channels; ++ic) {
+                    d0[ic] = (gdouble)in_img_array[to_1d_index(ix, iy, ic, width, channels)] -
+                             (gdouble)in_img_array[to_1d_index(ix, iy - 1, ic, width, channels)];
+                    d1[ic] = (gdouble)in_img_array[to_1d_index(ix, iy + 1, ic, width, channels)] -
+                             (gdouble)in_img_array[to_1d_index(ix, iy, ic, width, channels)];
                 }
-                alphas[to_1d_index(ix, iy, 1, width, 2)] = alpha_from_gradients(d0, d1);
+                alphas[to_1d_index(ix, iy, 1, width, 2)] = alpha_from_gradients(d0, d1, channels);
             } else {
                 alphas[to_1d_index(ix, iy, 1, width, 2)] = 0.0;
             }
         }
 }
 
-static gdouble alpha_from_gradients(gdouble d0[], gdouble d1[]) {
+static gdouble alpha_from_gradients(gdouble d0[], gdouble d1[], gint channels) {
     gdouble alpha = 0.0;
     gboolean changed = FALSE;
 
-    for (gint ic = 0; ic < 3; ++ic) {
+    for (gint ic = 0; ic < channels; ++ic) {
         // Ignore if any gradient is zero. If all are zero, then so is alpha.
         if (d0[ic] != 0.0 || d1[ic] != 0.0) {
             double maybe_alpha = 0.0;
