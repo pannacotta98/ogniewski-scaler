@@ -237,7 +237,7 @@ static gdouble alpha_from_gradients(gdouble d0[], gdouble d1[], gint channels) {
 }
 
 static inline gdouble out_to_in_coord(gint out, gdouble factor) {
-    return (out + 0.5) * (1 / factor);
+    return (out + 0.5) * (1 / factor) - 0.5;
 }
 
 static inline gint to_1d_index(gint x, gint y, gint channel, gint width, gint num_channels) {
